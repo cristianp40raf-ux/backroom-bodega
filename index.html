@@ -5800,6 +5800,40 @@ float sombraT(vec3 p){ float sy = smoothstep(${hc} - .1, ${hc} + 1.2, p.y), a = 
             if (zc > 18.1 && zc < 69.1 && xc > -59.3 && xc < -46.3 && b86.max.y > 3.2 && b86.min.y < 3.1) { const f = (3.18 - b86.min.y) / (b86.max.y - b86.min.y); m86.decompose(p86, q86, s86); p86.y = b86.min.y + (3.18 - b86.min.y) / 2 - (b86.min.y + b86.max.y) / 2 + p86.y; s86.y *= f; m86.compose(p86, q86, s86); o.setMatrixAt(i, m86); ch = true; K.a86[2]++; } } }
         if (ch) { o.instanceMatrix.needsUpdate = true; o.computeBoundingSphere && o.computeBoundingSphere(); } });
       h86(); }
+    /* ===== v89 · LOTES ESTÁTICOS (optimización del modo normal): las ~1.400 piezas fijas de la trastienda dibujada por el sim se unen por material
+       y por celda de 16 m en pocas mallas → menos llamadas de dibujo. Excluye: techos/cortes/muros de sala (se esconden con botones), retiradas,
+       transparentes, instanciadas, animadas, con hijos y lo que se mueve. Se ejecuta 50 s después de la carga (tras las limpiezas v84/v86). ===== */
+    {
+      const ATR = g => Object.keys(g.attributes).sort().map(k => { const a = g.attributes[k]; return k + ':' + a.itemSize + ':' + a.array.constructor.name + ':' + !!a.normalized; }).join(',') + (g.index ? '|i' : '|n') + (Object.keys(g.morphAttributes || {}).length ? '|m' : '');
+      const TX = t => t ? t.uuid : '';
+      const MK = m => (m.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile || m.clippingPlanes) ? m.uuid : [m.type, m.color && m.color.getHex(), TX(m.map), TX(m.normalMap), TX(m.roughnessMap), TX(m.metalnessMap), TX(m.aoMap), TX(m.emissiveMap), TX(m.lightMap), TX(m.alphaMap), TX(m.bumpMap),
+        m.emissive && m.emissive.getHex(), m.emissiveIntensity, m.roughness, m.metalness, m.side, m.alphaTest, m.vertexColors, m.flatShading, m.envMapIntensity, m.opacity, m.polygonOffset, m.polygonOffsetFactor, m.polygonOffsetUnits,
+        m.depthWrite, m.depthTest, m.toneMapped, m.fog, m.wireframe, m.normalScale && m.normalScale.x, m.aoMapIntensity, m.lightMapIntensity, m.shininess, m.specular && m.specular.getHex()].join('|');
+      const MOV = /puerta|porton|portón|cortina|vaiven|cadena|grua|grúa|carro|rueda|transpaleta|montacarga|anim|persona|pj_/i;
+      const lote89 = () => { try {
+        const G = sc.getObjectByName('trastienda_ext'); if (!G || K.l89) return; const FR = window.__fx && __fx.FXR, SA = window.__sala;
+        const S = new Set([...(SA && SA.techos || []), ...(FR ? FR.roof : []), ...(FR ? FR.cut : []), ...(SA && SA.muros || []).filter(Boolean)]);
+        const ORB = G.onBeforeRender; G.updateMatrixWorld(true); const Gi = G.matrixWorld.clone().invert();
+        const ok = o => { if (!o.isMesh || o.isInstancedMesh || o.isSkinnedMesh || o.children.length || Array.isArray(o.material) || o.onBeforeRender !== ORB) return false;
+          const m = o.material; if (!m || m === INV86 || m.visible === false || m.transparent || o.userData.retirado86 || MOV.test(o.name)) return false;
+          if (!o.geometry || !o.geometry.attributes.position) return false;   /* las cajas traen 6 grupos internos; con un solo material no importan */
+          for (let q = o; q && q !== G; q = q.parent) { if (!q.visible || S.has(q) || (q !== o && MOV.test(q.name))) return false; } return true; };
+        const grupos = new Map(), c = new THREE.Vector3();
+        G.traverse(o => { if (!ok(o)) return; if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); o.geometry.boundingBox.getCenter(c).applyMatrix4(o.matrixWorld);
+          const k = MK(o.material) + '#' + ATR(o.geometry) + '#' + Math.floor(c.x / 16) + ',' + Math.floor(c.z / 16) + '#' + o.castShadow + o.receiveShadow;
+          if (!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(o); });
+        let antes = 0, despues = 0; const quitar = [];
+        for (const L of grupos.values()) { if (L.length < 2) continue;
+          const geos = L.map(o => { const g = o.geometry.clone(); g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(Gi, o.matrixWorld)); return g; });
+          const mg = mergeGeometries(geos, false); geos.forEach(g => g.dispose()); if (!mg) continue;
+          const M = new THREE.Mesh(mg, L[0].material); M.name = 'lote89'; M.castShadow = L[0].castShadow; M.receiveShadow = L[0].receiveShadow; M.matrixAutoUpdate = false; M.userData.lote89 = L.length;
+          G.add(M); antes += L.length; despues++; quitar.push(...L); }
+        const usos = new Map(); sc.traverse(o => { if (o.geometry) usos.set(o.geometry, (usos.get(o.geometry) || 0) + 1); });
+        for (const o of quitar) { o.parent.remove(o); const n = usos.get(o.geometry) - 1; usos.set(o.geometry, n); if (n <= 0) o.geometry.dispose(); }
+        K.l89 = [antes, despues, grupos.size];
+      } catch (e) { K.l89err = String(e && e.message || e); } };
+      setTimeout(lote89, 50000);
+    }
     K.ok = true;
   }
 })();

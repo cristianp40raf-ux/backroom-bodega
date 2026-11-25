@@ -910,3 +910,10 @@ QA (capturas 1600×900): cámaras APROBADO CON NOTAS; bandejas con bajada APROBA
 - Modo Cine: suavizado de bordes MSAA 4x en el EffectComposer (antes sin suavizado).
 - Filtrado anisotrópico: sube de 8x a 16x (o el máximo de la tarjeta) y se repite 90 s para alcanzar al edificio y la trastienda, que cargan después; antes quedaban sin filtrar. Verificado: 0 de 451 texturas sin filtrado.
 - Respaldo: index_v87_antes_v88.html.
+
+## v89 — Optimización del modo normal, paso 1: lotes estáticos (publicada como versión 117, 2026-11-25)
+- Medición previa (llamadas de dibujo por cuadro): desde arriba ~320, pasillo bodega ~870, trastienda ~370, recepción ~800, sala ~100. Solo 2 luces; 1.258 materiales distintos.
+- Nuevo bloque v89 al final del kit: 50 s después de cargar une las piezas fijas de `trastienda_ext` por material y celda de 16 m. 592 piezas → 71 mallas.
+- Excluye: techos/cortes/muros de sala (SALA.techos, FXR.roof, FXR.cut, SALA.muros), retiradas (INV86), transparentes, instanciadas, con hijos y nombres de piezas móviles. Prueba previa: las 35 piezas que se esconden con botones están todas en esas listas; solo 1 se mueve (también en ellas).
+- Resultado: pasillo bodega −19 %, trastienda −23 %, merma −24 %, recepción −15 % de llamadas; triángulos iguales. Capturas 1600 px v88 vs v89 idénticas (diferencias solo en personas en movimiento y polvo).
+- Respaldo: index_v88_antes_v89.html.
