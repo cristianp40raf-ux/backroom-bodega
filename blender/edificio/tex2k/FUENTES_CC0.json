@@ -1,0 +1,93 @@
+{
+ "panel_hormigon": {
+  "fuente": "ambientCG",
+  "id": "Concrete034",
+  "url": "https://ambientcg.com/view?id=Concrete034",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "estuco": {
+  "fuente": "ambientCG",
+  "id": "Plaster003",
+  "url": "https://ambientcg.com/view?id=Plaster003",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "metal": {
+  "fuente": "ambientCG",
+  "id": "Metal049A",
+  "url": "https://ambientcg.com/view?id=Metal049A",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "pintura": {
+  "fuente": "ambientCG",
+  "id": "PaintedPlaster017",
+  "url": "https://ambientcg.com/view?id=PaintedPlaster017",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "chapa": {
+  "fuente": "ambientCG",
+  "id": "CorrugatedSteel005",
+  "url": "https://ambientcg.com/view?id=CorrugatedSteel005",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "ladrillo": {
+  "fuente": "ambientCG",
+  "id": "Bricks059",
+  "url": "https://ambientcg.com/view?id=Bricks059",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "listones": {
+  "fuente": "ambientCG",
+  "id": "WoodSiding008",
+  "url": "https://ambientcg.com/view?id=WoodSiding008",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "membrana": {
+  "fuente": "ambientCG",
+  "id": "Concrete047A",
+  "url": "https://ambientcg.com/view?id=Concrete047A",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "cielo": {
+  "fuente": "ambientCG",
+  "id": "OfficeCeiling005",
+  "url": "https://ambientcg.com/view?id=OfficeCeiling005",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "asfalto": {
+  "fuente": "Poly Haven",
+  "id": "asphalt_02",
+  "url": "https://polyhaven.com/a/asphalt_02",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "acera": {
+  "fuente": "Poly Haven",
+  "id": "concrete_pavement",
+  "url": "https://polyhaven.com/a/concrete_pavement",
+  "licencia": "CC0",
+  "res": "2K"
+ },
+ "deck": {
+  "fuente": "ambientCG",
+  "id": "CorrugatedSteel005",
+  "url": "https://ambientcg.com/view?id=CorrugatedSteel005",
+  "licencia": "CC0",
+  "res": "2K",
+  "nota": "teñido gris claro"
+ },
+ "malla": {
+  "fuente": "propia",
+  "id": "procedural raschel",
+  "licencia": "propia",
+  "res": "2K"
+ }
+}
