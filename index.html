@@ -1088,7 +1088,7 @@ function outlinePass(){const hid=[];for(const o of FXR.olx)if(o.visible){o.visib
 // ---------- gráficos "Cine": sombras reales + oclusión de luz (GTAO) + brillo de luces (bloom)
 async function cineInit(){if(FXR.comp||FXR.compBusy)return;FXR.compBusy=true;
   try{const A='three/addons/postprocessing/';const[{EffectComposer},{RenderPass},{GTAOPass},{UnrealBloomPass},{OutputPass}]=await Promise.all(['EffectComposer','RenderPass','GTAOPass','UnrealBloomPass','OutputPass'].map(n=>import(A+n+'.js')));
-    const w=innerWidth,h=innerHeight,c=new EffectComposer(renderer);c.addPass(new RenderPass(scene,camera));
+    const w=innerWidth,h=innerHeight,c=new EffectComposer(renderer,new THREE.WebGLRenderTarget(w,h,{type:THREE.HalfFloatType,samples:4}));   /* v88: Cine con suavizado de bordes (MSAA 4x) */c.addPass(new RenderPass(scene,camera));
     const ao=new GTAOPass(scene,camera,w,h);const aoSS=ao.setSize.bind(ao);ao.setSize=(a,b)=>aoSS(Math.max(1,a>>1),Math.max(1,b>>1));ao.updateGtaoMaterial({radius:.6,distanceExponent:1.4,thickness:1.2,scale:1.1,samples:8});FXR.ao=ao;ao.blendIntensity=.85;c.addPass(ao);
     const bl=new UnrealBloomPass(new THREE.Vector2(w/2,h/2),.32,.5,2.2);FXR.bloom=bl;c.addPass(bl);c.addPass(new OutputPass());c.setPixelRatio(renderer.getPixelRatio());c.setSize(w,h);FXR.comp=c;}
   catch(e){console.warn('Cine no disponible',e&&e.message);FX.g='bueno';fxApply();toast('Este navegador no permite el modo Cine; queda en Bueno');}
@@ -1244,16 +1244,16 @@ fxUI();
 window.__fx={FX,FXR,setMaq,fxApply,MQ,pick:(x,y)=>{const rc=new THREE.Raycaster();rc.setFromCamera(new THREE.Vector2(x/innerWidth*2-1,-y/innerHeight*2+1),camera);return rc.intersectObjects(scene.children,true).filter(h=>h.object.visible).slice(0,3).map(h=>h.object.name+'@'+h.point.toArray().map(v=>v.toFixed(1)).join(','));}};
 
 // ===================== FX v16: resolución automática y prueba de rendimiento en el PC del usuario
-FXR.pr0=Math.min(devicePixelRatio||1,1.25);FXR.pr=FXR.pr0;FXR.adT=0;FXR.adLow=0;
-function setPR(pr){pr=Math.max(.55,Math.min(FXR.prCap||FXR.pr0,pr));if(Math.abs(pr-FXR.pr)<.005)return;FXR.pr=pr;renderer.setPixelRatio(pr);renderer.setSize(innerWidth,innerHeight,false);
+FXR.pr0=Math.min(devicePixelRatio||1,1.25);FXR.pr=FXR.pr0;FXR.prMin=FXR.pr0*.85;FXR.adT=0;   /* v88: piso de resolución 85 % (antes bajaba a 55 %) */FXR.adLow=0;
+function setPR(pr){pr=Math.max(FXR.prMin||.55,Math.min(FXR.prCap||FXR.pr0,pr));if(Math.abs(pr-FXR.pr)<.005)return;FXR.pr=pr;renderer.setPixelRatio(pr);renderer.setSize(innerWidth,innerHeight,false);
   if(FXR.comp){FXR.comp.setPixelRatio(pr);FXR.comp.setSize(innerWidth,innerHeight);}fxUI();}
 // cada 2 s: si los FPS caen bajo la meta baja la resolución interna; si sobran, la sube. Cine vuelve a Bueno solo si ni al mínimo llega a 22 FPS.
 function adaptFrame(dt){FXR.adT+=dt;if(FXR.adT<2)return;FXR.adT=0;if(document.hidden||comparing||FXR.prCap)return;const fps=1/Math.max(1e-3,FXR.dtAvg),goal=FX.g=='cine'||FX.view=='maq'?30:40;
   if(!FX.auto){if(FXR.pr<FXR.pr0)setPR(FXR.pr0);}
   /* con histéresis: baja solo tras 6 s seguidos bajo la meta y sube solo tras 10 s muy sobre ella (antes oscilaba cada 2 s) */
   else{FXR.lowN=fps<goal-5?(FXR.lowN||0)+1:0;FXR.hiN=fps>goal+20?(FXR.hiN||0)+1:0;
-    if(FXR.lowN>=3){FXR.lowN=0;setPR(Math.max(.7,FXR.pr*.88));}else if(FXR.hiN>=5&&FXR.pr<FXR.pr0){FXR.hiN=0;setPR(FXR.pr*1.07);}}
-  if(FX.g=='cine'&&fps<22&&(FXR.pr<=.56||!FX.auto)){if(++FXR.adLow>=2){FXR.adLow=0;FX.g='bueno';fxApply();fxSave();toast('El modo Cine no llegaba a 22 FPS ni con menos resolución: vuelvo a Bueno');}}else FXR.adLow=0;}
+    if(FXR.lowN>=3){FXR.lowN=0;setPR(Math.max(FXR.prMin,FXR.pr*.93));}else if(FXR.hiN>=5&&FXR.pr<FXR.pr0){FXR.hiN=0;setPR(FXR.pr*1.07);}}
+  if(FX.g=='cine'&&fps<22&&(FXR.pr<=FXR.prMin+.01||!FX.auto)){if(++FXR.adLow>=2){FXR.adLow=0;FX.g='bueno';fxApply();fxSave();toast('El modo Cine no llegaba a 22 FPS ni con menos resolución: vuelvo a Bueno');}}else FXR.adLow=0;}
 addEventListener('resize',()=>{if(FXR.comp){FXR.comp.setPixelRatio(FXR.pr);FXR.comp.setSize(innerWidth,innerHeight);}});
 
 (()=>{const st=document.createElement('style');st.textContent=`
@@ -1651,7 +1651,7 @@ function mqExtras(dt){mqLabels();const fps=1/Math.max(1e-3,FXR.dtAvg);
 (()=>{const cx=(B.x1+TR.xw)/2,cz=(B.z0+TR.zs)/2;sun.position.set(cx-6,22,cz-3);sun.target.position.set(cx,0,cz);
   Object.assign(sun.shadow.camera,{left:-44,right:44,top:20,bottom:-20,near:2,far:60});   /* v38: cubre también papeles, muebles y vinos de la sala */sun.shadow.camera.updateProjectionMatrix();sun.shadow.bias=-.0003;sun.shadow.normalBias=.025;})();
 // filtrado anisotrópico: el piso y las etiquetas se ven nítidos en ángulo
-let anisoDone=false;function mqAniso(){if(anisoDone||document.getElementById('load'))return;anisoDone=true;const a=Math.min(8,renderer.capabilities.getMaxAnisotropy());
+let anisoDone=false,anisoN=0;function mqAniso(){if(anisoDone||document.getElementById('load'))return;if(++anisoN>=60)anisoDone=true;const a=Math.min(16,renderer.capabilities.getMaxAnisotropy());   /* v88: repite 90 s para alcanzar al edificio y la trastienda, que llegan después */
   scene.traverse(o=>{if(!o.material)return;for(const m of(Array.isArray(o.material)?o.material:[o.material]))for(const k of['map','normalMap','roughnessMap','lightMap','alphaMap'])if(m[k]&&m[k].anisotropy<a){m[k].anisotropy=a;m[k].needsUpdate=true;}});}
 setInterval(mqAniso,1500);
 window.__mq={MQ,MC,mqGo,MQQ};window.__mqf=mqFocus;

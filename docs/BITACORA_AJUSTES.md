@@ -904,3 +904,9 @@ QA (capturas 1600×900): cámaras APROBADO CON NOTAS; bandejas con bajada APROBA
 - Revisado sin cambios: sala (red y luces viejas ya retiradas; los ductos blancos del simulador no tienen reemplazo y se mantienen), vestíbulo (la bandeja negra es la de Blender), banderines del vestíbulo, racks y jaulas de la bodega (vigentes).
 - Pendiente de decisión: muros de la bodega y del vestíbulo del modelo base (9–13 cm delante de los muros de Blender, sin parpadeo).
 - Mapa de reemplazos ampliado a bodega y sala (versión 2).
+
+## v88 — Etapa 2: nitidez (publicada como versión 116, 2026-11-25)
+- Resolución automática: piso 85 % (antes bajaba a 55–70 %); baja en pasos de 7 % en vez de 12 %.
+- Modo Cine: suavizado de bordes MSAA 4x en el EffectComposer (antes sin suavizado).
+- Filtrado anisotrópico: sube de 8x a 16x (o el máximo de la tarjeta) y se repite 90 s para alcanzar al edificio y la trastienda, que cargan después; antes quedaban sin filtrar. Verificado: 0 de 451 texturas sin filtrado.
+- Respaldo: index_v87_antes_v88.html.
