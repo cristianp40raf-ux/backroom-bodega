@@ -926,3 +926,11 @@ QA (capturas 1600×900): cámaras APROBADO CON NOTAS; bandejas con bajada APROBA
 - Investigado y descartado: el piso del vestíbulo salía oscuro en una captura de v89 y claro en v90; repetida la misma prueba, v89 también sale claro (dependía del momento de la captura, no de la versión).
 - Pendiente: ocultar el contenido de la sala desde la bodega/trastienda. El grupo «sala» incluye muros que se ven desde dentro, así que no se puede apagar entero; el mapa de visibilidad por puntos es demasiado lento en el emulador.
 - Respaldo: index_v89_antes_v90.html.
+
+## v91 — Carga en binario (publicada como versión 119, 2026-11-26)
+- Edificio (3 partes), kit de la trastienda (2) y calles (1) ahora también como .bin (14 MB c/u, mismos bytes del .glb) + índice partes_v90.json.
+- Carga: intenta los .bin (con caché del navegador, versión en ?v=91); si falla o no hay índice, vuelve a los JSON base64 de siempre.
+- Medido en local: descarga + decodificación 1,1 s → 0,5 s; peso 84,8 MB → 63,6 MB (−25 %). Capturas 1600 px iguales a v90.
+- claude.ai no sirve archivos binarios: ahí se publica solo la página (sin índice) y usa los JSON. GitHub Pages usa los .bin.
+- Descartado «no construir objetos retirados»: los retirados por nombre los arma el propio sim (no vienen de los .glb) y ya no se dibujan; quitarlos exigiría tocar la lógica interna.
+- Respaldo: index_v90_antes_v91.html.
