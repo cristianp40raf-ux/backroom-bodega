@@ -966,7 +966,7 @@ window.__med={metrics,renderMed,setLM};
 
 // ===================== FX v15: calidad gráfica, estilo caricatura, vista maqueta, sonido y marcadores
 const FX={g:'bueno',toon:false,view:'fp',snd:true,auto:true};
-try{const s=JSON.parse(localStorage.getItem('bodegaFX')||'{}');if(s.auto===false)FX.auto=false;if(['basico','bueno','cine'].includes(s.g))FX.g=s.g;FX.toon=false;   /* v83: estilo caricatura retirado (no se usaba) */if(s.snd===false)FX.snd=false;}catch(e){}
+try{const s=JSON.parse(localStorage.getItem('bodegaFX')||'{}');if(s.auto===false)FX.auto=false;if(['basico','bueno'].includes(s.g))FX.g=s.g;else if(s.g==='cine')FX.g='bueno';   /* v90: modo Cine retirado (Cristian); quien lo tenía guardado pasa a Bueno */FX.toon=false;   /* v83: estilo caricatura retirado (no se usaba) */if(s.snd===false)FX.snd=false;}catch(e){}
 function fxSave(){try{localStorage.setItem('bodegaFX',JSON.stringify({g:FX.g,toon:FX.toon,snd:FX.snd,auto:FX.auto}));}catch(e){}}
 const FXR={ready:false,hemi:null,hemiI:1,roof:[],cut:[],olx:[],scanT:0,comp:null,compBusy:false,dtAvg:1/60,slowT:0,blobs:null,pins:new Map(),stepAcc:0,lastPos:new THREE.Vector3(),
   gPrev:new THREE.Vector3(),liftPrev:0,reachPrev:0,evN:0,beepT:0,fog:null,dust:null,tracks:[],marker:null};
@@ -992,7 +992,7 @@ body.maq #c{cursor:grab}body.maq #c:active{cursor:grabbing}
 `;document.head.appendChild(st);
   const app=$('#app');const vig=document.createElement('div');vig.id='vig';app.insertBefore(vig,app.children[1]);
   const row=document.createElement('div');row.className='glass row';row.id='fxRow';row.setAttribute('aria-label','Estética');
-  row.innerHTML=`<button id="bMaq" aria-pressed="false" title="Vista desde arriba, sin techo, como una maqueta">Vista maqueta</button><button id="bGfx" title="Básico: lo mínimo · Bueno: sombras de contacto, polvo y bruma · Cine: además sombras reales, oclusión de luz y brillo de las luces (pide una tarjeta gráfica mejor)">Gráficos: Bueno</button><button id="bSnd" aria-pressed="true">Sonido</button><button id="bBench" title="Mide en tu PC cuánto cuesta cada efecto">Probar rendimiento</button>`;
+  row.innerHTML=`<button id="bMaq" aria-pressed="false" title="Vista desde arriba, sin techo, como una maqueta">Vista maqueta</button><button id="bGfx" title="Básico: lo mínimo · Bueno: sombras de contacto, polvo y bruma">Gráficos: Bueno</button><button id="bSnd" aria-pressed="true">Sonido</button><button id="bBench" title="Mide en tu PC cuánto cuesta cada efecto">Probar rendimiento</button>`;
   $('.hud.tr').appendChild(row);
   const tag=document.createElement('div');tag.id='tkTag';tag.hidden=true;app.appendChild(tag);
   const mh=document.createElement('div');mh.id='maqHelp';mh.className='glass';mh.hidden=true;
@@ -1000,7 +1000,7 @@ body.maq #c{cursor:grab}body.maq #c:active{cursor:grabbing}
 })();
 function fxUI(){$('#bMaq').setAttribute('aria-pressed',FX.view=='maq');$('#bGfx').textContent='Gráficos: '+GFXN[FX.g]+(FXR.pr0&&FXR.pr<FXR.pr0-.01?' · '+Math.round(FXR.pr/FXR.pr0*100)+' %':'');$('#bSnd').setAttribute('aria-pressed',FX.snd);
   $('#vig').hidden=FX.g=='basico';$('#maqHelp').hidden=FX.view!='maq';document.body.classList.toggle('maq',FX.view=='maq');}
-$('#bGfx').onclick=()=>{FX.g=FX.g=='basico'?'bueno':FX.g=='bueno'?'cine':'basico';fxApply();fxSave();toast('Gráficos: '+GFXN[FX.g]+(FX.g=='cine'?' (si baja de 18 FPS vuelve solo a Bueno)':''));};
+$('#bGfx').onclick=()=>{FX.g=FX.g=='basico'?'bueno':'basico';fxApply();fxSave();toast('Gráficos: '+GFXN[FX.g]);};
 
 $('#bSnd').onclick=()=>{FX.snd=!FX.snd;fxSave();if(FX.snd)sndInit();if(SND.ctx){FX.snd?SND.ctx.resume():SND.ctx.suspend();}fxUI();};
 $('#bMaq').onclick=()=>setMaq(FX.view!='maq');
@@ -1238,6 +1238,8 @@ function fxRender(dt,now){if(FXR.bench)return;
   if(FXR.ready){FXR.scanT+=dt;if(FXR.scanT>1){FXR.scanT=0;if(FX.toon)toonScan();}
     adaptFrame(dt);
     if(FX.view=='maq')maqFrame(dt);blobFrame();dustFrame(dt,now);pinsFrame();sndFrame(dt);wearFrame(dt);rfFrame(dt);turnoFrame(dt);}
+  /* v90: en «Desde arriba» la sombra del sol se recalcula 1 de cada 3 cuadros (antes cada cuadro: la escena se dibujaba dos veces) */
+  if(renderer.shadowMap.enabled&&FX.view=='maq'){renderer.shadowMap.autoUpdate=false;FXR.shN=((FXR.shN||0)+1)%3;if(!FXR.shN)renderer.shadowMap.needsUpdate=true;}else renderer.shadowMap.autoUpdate=true;
   if(FX.g=='cine'&&FXR.comp&&!FX.toon)FXR.comp.render(dt);else renderer.render(scene,camera);
   if(FX.toon&&FXR.ready)outlinePass();}
 fxUI();
@@ -5806,31 +5808,34 @@ float sombraT(vec3 p){ float sy = smoothstep(${hc} - .1, ${hc} + 1.2, p.y), a = 
     {
       const ATR = g => Object.keys(g.attributes).sort().map(k => { const a = g.attributes[k]; return k + ':' + a.itemSize + ':' + a.array.constructor.name + ':' + !!a.normalized; }).join(',') + (g.index ? '|i' : '|n') + (Object.keys(g.morphAttributes || {}).length ? '|m' : '');
       const TX = t => t ? t.uuid : '';
-      const MK = m => (m.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile || m.clippingPlanes) ? m.uuid : [m.type, m.color && m.color.getHex(), TX(m.map), TX(m.normalMap), TX(m.roughnessMap), TX(m.metalnessMap), TX(m.aoMap), TX(m.emissiveMap), TX(m.lightMap), TX(m.alphaMap), TX(m.bumpMap),
+      const MK = m => m.clippingPlanes ? m.uuid : [(m.customProgramCacheKey ? m.customProgramCacheKey() : ''), m.userData && m.userData.sinSombraT ? 'sST' : '', m.type, m.color && m.color.getHex(), TX(m.map), TX(m.normalMap), TX(m.roughnessMap), TX(m.metalnessMap), TX(m.aoMap), TX(m.emissiveMap), TX(m.lightMap), TX(m.alphaMap), TX(m.bumpMap),
         m.emissive && m.emissive.getHex(), m.emissiveIntensity, m.roughness, m.metalness, m.side, m.alphaTest, m.vertexColors, m.flatShading, m.envMapIntensity, m.opacity, m.polygonOffset, m.polygonOffsetFactor, m.polygonOffsetUnits,
         m.depthWrite, m.depthTest, m.toneMapped, m.fog, m.wireframe, m.normalScale && m.normalScale.x, m.aoMapIntensity, m.lightMapIntensity, m.shininess, m.specular && m.specular.getHex()].join('|');
       const MOV = /puerta|porton|portón|cortina|vaiven|cadena|grua|grúa|carro|rueda|transpaleta|montacarga|anim|persona|pj_/i;
       const lote89 = () => { try {
-        const G = sc.getObjectByName('trastienda_ext'); if (!G || K.l89) return; const FR = window.__fx && __fx.FXR, SA = window.__sala;
+        const GT = sc.getObjectByName('trastienda_ext'); if (!GT || K.l89) return; const FR = window.__fx && __fx.FXR, SA = window.__sala;
+        K.l89 = [0, 0, 0];
+        const VE = sc.getObjectByName('vehiculos_ext');   /* v90: también cada vehículo (están fijos: «fijar»); lo unido queda dentro de su vehículo */
+        for (const [G, CEL] of [[GT, 16], ...(VE ? VE.children.map(v => [v, 0]) : [])]) {
         const S = new Set([...(SA && SA.techos || []), ...(FR ? FR.roof : []), ...(FR ? FR.cut : []), ...(SA && SA.muros || []).filter(Boolean)]);
         const ORB = G.onBeforeRender; G.updateMatrixWorld(true); const Gi = G.matrixWorld.clone().invert();
         const ok = o => { if (!o.isMesh || o.isInstancedMesh || o.isSkinnedMesh || o.children.length || Array.isArray(o.material) || o.onBeforeRender !== ORB) return false;
           const m = o.material; if (!m || m === INV86 || m.visible === false || m.transparent || o.userData.retirado86 || MOV.test(o.name)) return false;
-          if (!o.geometry || !o.geometry.attributes.position) return false;   /* las cajas traen 6 grupos internos; con un solo material no importan */
+          if (!o.geometry || !o.geometry.attributes.position || o.matrixWorld.determinant() < 0) return false;   /* espejadas: al unirlas sus caras quedarían al revés. Las cajas traen 6 grupos internos; con un solo material no importan */
           for (let q = o; q && q !== G; q = q.parent) { if (!q.visible || S.has(q) || (q !== o && MOV.test(q.name))) return false; } return true; };
         const grupos = new Map(), c = new THREE.Vector3();
         G.traverse(o => { if (!ok(o)) return; if (!o.geometry.boundingBox) o.geometry.computeBoundingBox(); o.geometry.boundingBox.getCenter(c).applyMatrix4(o.matrixWorld);
-          const k = MK(o.material) + '#' + ATR(o.geometry) + '#' + Math.floor(c.x / 16) + ',' + Math.floor(c.z / 16) + '#' + o.castShadow + o.receiveShadow;
+          const k = MK(o.material) + '#' + ATR(o.geometry) + '#' + (CEL ? Math.floor(c.x / CEL) + ',' + Math.floor(c.z / CEL) : '') + '#' + o.castShadow + o.receiveShadow;
           if (!grupos.has(k)) grupos.set(k, []); grupos.get(k).push(o); });
         let antes = 0, despues = 0; const quitar = [];
         for (const L of grupos.values()) { if (L.length < 2) continue;
           const geos = L.map(o => { const g = o.geometry.clone(); g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(Gi, o.matrixWorld)); return g; });
           const mg = mergeGeometries(geos, false); geos.forEach(g => g.dispose()); if (!mg) continue;
           const M = new THREE.Mesh(mg, L[0].material); M.name = 'lote89'; M.castShadow = L[0].castShadow; M.receiveShadow = L[0].receiveShadow; M.matrixAutoUpdate = false; M.userData.lote89 = L.length;
-          G.add(M); antes += L.length; despues++; quitar.push(...L); }
+          G.add(M); M.updateMatrixWorld(true); antes += L.length; despues++; quitar.push(...L); }
         const usos = new Map(); sc.traverse(o => { if (o.geometry) usos.set(o.geometry, (usos.get(o.geometry) || 0) + 1); });
         for (const o of quitar) { o.parent.remove(o); const n = usos.get(o.geometry) - 1; usos.set(o.geometry, n); if (n <= 0) o.geometry.dispose(); }
-        K.l89 = [antes, despues, grupos.size];
+        K.l89[0] += antes; K.l89[1] += despues; K.l89[2] += grupos.size; }
       } catch (e) { K.l89err = String(e && e.message || e); } };
       setTimeout(lote89, 50000);
     }

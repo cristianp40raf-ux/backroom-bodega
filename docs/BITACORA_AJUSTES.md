@@ -917,3 +917,12 @@ QA (capturas 1600×900): cámaras APROBADO CON NOTAS; bandejas con bajada APROBA
 - Excluye: techos/cortes/muros de sala (SALA.techos, FXR.roof, FXR.cut, SALA.muros), retiradas (INV86), transparentes, instanciadas, con hijos y nombres de piezas móviles. Prueba previa: las 35 piezas que se esconden con botones están todas en esas listas; solo 1 se mueve (también en ellas).
 - Resultado: pasillo bodega −19 %, trastienda −23 %, merma −24 %, recepción −15 % de llamadas; triángulos iguales. Capturas 1600 px v88 vs v89 idénticas (diferencias solo en personas en movimiento y polvo).
 - Respaldo: index_v88_antes_v89.html.
+
+## v90 — Optimización del modo normal, paso 2 (publicada como versión 118, 2026-11-26)
+- Modo Cine retirado (a pedido de Cristian: ya no funcionaba bien). El botón alterna solo Básico/Bueno; quien lo tenía guardado pasa a Bueno. El código del Cine queda inactivo.
+- «Desde arriba»: la sombra del sol se recalcula 1 de cada 3 cuadros (antes cada cuadro).
+- Agrupador: identifica materiales por su llave de programa (las inyecciones occ/sT/r55 usan uniformes globales) → junta más piezas. Ahora también agrupa dentro de cada vehículo (están fijos). Excluye piezas espejadas. Total: 757 piezas → 122 mallas.
+- Resultado: trastienda 279→249, recepción 681→669 llamadas por cuadro. Capturas 1600 px iguales a v89.
+- Investigado y descartado: el piso del vestíbulo salía oscuro en una captura de v89 y claro en v90; repetida la misma prueba, v89 también sale claro (dependía del momento de la captura, no de la versión).
+- Pendiente: ocultar el contenido de la sala desde la bodega/trastienda. El grupo «sala» incluye muros que se ven desde dentro, así que no se puede apagar entero; el mapa de visibilidad por puntos es demasiado lento en el emulador.
+- Respaldo: index_v89_antes_v90.html.
