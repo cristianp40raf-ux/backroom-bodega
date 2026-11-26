@@ -5845,6 +5845,16 @@ float sombraT(vec3 p){ float sy = smoothstep(${hc} - .1, ${hc} + 1.2, p.y), a = 
       } catch (e) { K.l89err = String(e && e.message || e); } };
       setTimeout(lote89, 50000);
     }
+    /* ===== v92 · LUZ HORNEADA, paso 1: oclusión ambiental del piso de la trastienda, horneada en Blender (Cycles, distancia 1,5 m) con la
+       geometría real exportada del sim (kit + edificio + trastienda + sala; sin personas ni vehículos). Una malla a 3 mm del piso que multiplica
+       su color: sombra suave junto a muros, racks, pallets y equipos. 1 llamada de dibujo. Fuente: Proyect 3D\ao_horneado. ===== */
+    (async () => { try {
+      const [d, tx] = await Promise.all([fetch('ao_piso.json?v=92b').then(r => r.json()), new THREE.TextureLoader().loadAsync('ao_piso.webp?v=92d')]);
+      tx.flipY = false; tx.colorSpace = THREE.SRGBColorSpace; tx.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(d.pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(d.uv, 2)); g.setIndex(d.idx); g.computeBoundingSphere();
+      const m = new THREE.MeshBasicMaterial({ map: tx, blending: THREE.MultiplyBlending, transparent: true, premultipliedAlpha: true, depthWrite: false, toneMapped: false, fog: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      const M = new THREE.Mesh(g, m); M.name = 'ao92_piso'; M.renderOrder = 2; M.matrixAutoUpdate = false; M.raycast = () => {}; sc.add(M); K.ao92 = d.idx.length / 3;
+    } catch (e) { K.ao92err = String(e && e.message || e); } })();
     K.ok = true;
   }
 })();

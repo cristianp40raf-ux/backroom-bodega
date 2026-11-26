@@ -934,3 +934,12 @@ QA (capturas 1600×900): cámaras APROBADO CON NOTAS; bandejas con bajada APROBA
 - claude.ai no sirve archivos binarios: ahí se publica solo la página (sin índice) y usa los JSON. GitHub Pages usa los .bin.
 - Descartado «no construir objetos retirados»: los retirados por nombre los arma el propio sim (no vienen de los .glb) y ya no se dibujan; quitarlos exigiría tocar la lógica interna.
 - Respaldo: index_v90_antes_v91.html.
+
+## v92 — Luz horneada, paso 1: oclusión ambiental del piso de la trastienda (publicada como versión 120, 2026-11-26)
+- Geometría visible exportada del sim (kit + edificio + trastienda + sala, sin personas ni vehículos) → Blender (Proyect 3D\ao_horneado\tras_geo.glb).
+- Malla de la capa: grilla 0,5 m solo donde hay piso a altura 0 (4.990 celdas), x −63,5..−44,5, z −0,5..80,5, a 12 mm (el piso tras_piso está a 4 mm).
+- El bake AO de Cycles no correspondía a la geometría (junto a muros quedaba blanco; verificado con rayos). Se calculó con mathutils.bvhtree en Blender: 32 rayos/píxel, 1,5 m. Script: blender/ao/hornear_ao_piso.py.
+- En el sim: una malla que multiplica el color del piso (MultiplyBlending, sin escribir profundidad). 1 llamada de dibujo, Básico y Bueno.
+- Capturas 1600 px antes/después: pasillo, merma, recepción → sombra de contacto al pie de muros, racks, mesón y pallets; sin manchas.
+- No verificado: si los pallets de la merma se mueven durante el turno (dejarían sombra donde estaban).
+- Respaldo: index_v91_antes_v92.html.
