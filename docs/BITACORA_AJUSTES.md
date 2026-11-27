@@ -943,3 +943,11 @@ QA (capturas 1600×900): cámaras APROBADO CON NOTAS; bandejas con bajada APROBA
 - Capturas 1600 px antes/después: pasillo, merma, recepción → sombra de contacto al pie de muros, racks, mesón y pallets; sin manchas.
 - No verificado: si los pallets de la merma se mueven durante el turno (dejarían sombra donde estaban).
 - Respaldo: index_v91_antes_v92.html.
+
+## v93 — Sombra de contacto corregida y extendida a todo el edificio (publicada como versión 121, 2026-11-26)
+- Problema reportado (captura de Cristian): el piso se oscurecía visiblemente desde la cámara de carnicería hacia recepción. Causa: la capa v92 terminaba en x −44,5, a mitad del pasillo norte de la trastienda (que corre de x −59 a −4,4 por z 0–4,9), y oscurecía todo el piso ~14 % (incluido el piso abierto) → escalón en el borde.
+- Corrección: una sola capa para trastienda + bodega + sala (x −62..42, z −3..85, 25.915 celdas de 0,5 m, textura 1040×880 a 10 cm).
+- Solo contacto: el piso abierto queda intacto (≥0,92 → 1); máximo −60 % junto a muros/racks/equipos; bordes desvanecidos 60 cm.
+- Pallets, cargas, carros, jaulas, tarimas, grúas, operador y personas fuera del cálculo (Cristian confirmó que pallets y carros se mueven). SUPUESTO: kit `mont_*`/`br_*` (montantes y vigas de rack) y `pl_*` son fijos.
+- Capturas 1600 px: pasillo trastienda, merma, bodega, sala, desde arriba → sin escalones ni manchas nuevas.
+- Respaldo: index_v92 en outputs/v90.

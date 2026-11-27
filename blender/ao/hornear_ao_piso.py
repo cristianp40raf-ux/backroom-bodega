@@ -1,4 +1,7 @@
-# v92 · Oclusión ambiental del piso de la trastienda (se ejecuta en Blender, por partes por el límite de 80 s del MCP).
+# v93 · Oclusión de contacto del piso de TODO el edificio (v92: solo trastienda)
+# v93: región x −62..42, Blender y −85..3 (sim z −3..85), rejilla 1040x880 (10 cm). Sin pallets/cargas/carros/grúas/personas.
+# Post v93: gauss 1 px; s=smoothstep((ao−0,35)/(0,92−0,35)); sombra=1−0,6·(1−s); desvanecido 60 cm en bordes de la máscara; inversión vertical.
+# (v92) Oclusión ambiental del piso de la trastienda (se ejecuta en Blender, por partes por el límite de 80 s del MCP).
 # Entrada: tras_geo.glb (geometría visible exportada del sim: kit + edificio + trastienda + sala, sin personas ni vehículos)
 # Se quitan las caras del piso (horizontales a ~0) de los oclusores; malla de bake = grilla 0,5 m solo donde hay piso a altura 0.
 # Cycles AO bake dio un resultado que no correspondía a la geometría (píxeles junto a muros en blanco), así que se calcula
